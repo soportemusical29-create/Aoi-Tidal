@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Consola</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .console-container {
+            padding: 10px;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            background-color: #0d0d0d;
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #555 #0d0d0d;
+        }
+
+        .console-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .console-container::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+
+        .console-container::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 10px;
+        }
+
+        .log {
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        .log-info { color: #8a8a8a; }
+        .log-error { color: #e74c3c; }
+        .log-success { color: #2ecc71; }
+        .log-exc { color: rgba(204, 196, 46, 0.87); }
+
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .filter-dropdown {
+            background-color: #333333;
+            border: 1px solid #4f4f4f;
+            color: #ffffff;
+            padding: 5px;
+            -webkit-app-region: no-drag;
+            margin-right: 5px;
+        }
+
+        .filter-dropdown:focus {
+            outline: none;
+        }
+
+        #title-bar {
+            -webkit-app-region: drag;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a1a1a;
+            padding: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid #303030;
+        }
+
+        #title-bar .button-group {
+            display: flex;
+            align-items: center;
+            -webkit-app-region: no-drag;
+        }
+
+        #title-bar button, #title-bar label {
+            background-color: #333333;
+            border: 1px solid #4f4f4f;
+            padding: 5px 10px;
+            color: #ffffff;
+            border-radius: 2px;
+            outline: none !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+            transition: background-color 0.3s;
+            margin-left: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        #title-bar button:hover, #title-bar label:hover {
+            background-color: #555555;
+        }
+
+        #min-btn {
+            background-color: #333333;
+        }
+
+        #close-btn {
+            background-color: #dc3545;
+        }
+
+        #close-btn:hover {
+            background-color: #c82333;
+        }
+
+        #copy-btn {
+            background-color: #4CAF50;
+        }
+
+        #copy-btn:hover {
+            background-color: #45A049;
+        }
+
+        #kill-btn {
+            background-color: #dc3545;
+        }
+
+        #kill-btn:hover {
+            background-color: #a71d2a;
+        }
+
+        #logout-all-btn {
+            background-color: #e67e22;
+        }
+
+        #logout-all-btn:hover {
+            background-color: #d35400;
+        }
+
+        #show-credentials {
+            margin-right: 5px;
+            cursor: pointer;
+            accent-color: #4CAF50;
+            margin-left: 5px;
+        }
+
+        #show-credentials-label {
+            font-size: 0.8rem;
+        }
+
+        .scroll-bottom-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1000;
+            -webkit-app-region: no-drag;
+        }
+
+        .scroll-bottom-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .scroll-bottom-btn::after {
+            content: '▼';
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        button, input {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+<div id="title-bar">
+    <div class="filter-container">
+        <select id="threadFilter" class="filter-dropdown" onchange="filterLogs()">
+            <option value="all">Todos los Hilos</option>
+        </select>
+        <select id="logTypeFilter" class="filter-dropdown" onchange="filterLogs()">
+            <option value="all">Todos los Tipos</option>
+            <option value="info">Info</option>
+            <option value="error">Errores</option>
+            <option value="success">Éxitos</option>
+            <option value="exc">Excepciones</option>
+        </select>
+    </div>
+
+    <div class="button-group">
+        <label id="show-credentials-label">
+            <input type="checkbox" id="show-credentials" checked>
+            Mostrar Credenciales
+        </label>
+        <button id="copy-btn">Copiar</button>
+        <button id="logout-all-btn" style="background-color:#e67e22;">Logout</button>
+        <button id="optimizer-btn" style="background-color:#27ae60;">Optimizar</button>
+        <button id="kill-btn" style="background-color:#dc3545;">Kill</button>
+        <button id="consolemin-btn">-</button>
+        <button id="consoleclose-btn">x</button>
+    </div>
+</div>
+
+<div class="console-container" id="console"></div>
+
+<button class="scroll-bottom-btn" id="scroll-bottom-btn"></button>
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    let shouldScrollToBottom = true;
+    const uniqueMessages = new Set();
+    const threadNumbers = [];
+    let showCredentials = true;
+
+    function maskCredentials(message) {
+        // This function masks credentials based on various formats detected in the log
+        return message.replace(/([\w.-]+@[\w.-]+):([^\s]+)/g, (match, p1, p2) => {
+            const emailStars = '*'.repeat(p1.length);
+            const passwordStars = '*'.repeat(p2.length);
+            return `${emailStars}:${passwordStars}`;
+        });
+    }
+
+    function createLogElement(message) {
+        const originalMessage = message;
+
+        // Apply masking if credentials should not be shown
+        if (!showCredentials) {
+            message = maskCredentials(message);
+        }
+
+        const logElement = document.createElement('div');
+        logElement.className = 'log';
+        if (message.includes('[INFO]')) {
+            logElement.classList.add('log-info');
+        } else if (message.includes('[ERR.]')) {
+            logElement.classList.add('log-error');
+        } else if (message.includes('[SUCC]')) {
+            logElement.classList.add('log-success');
+        } else if (message.includes('[EXC.]')) {
+            logElement.classList.add('log-exc');
+        }
+        logElement.textContent = message;
+
+        const threadMatch = message.match(/\| Thread (\d+)/);
+        if (threadMatch) {
+            const threadNumber = threadMatch[1];
+            logElement.dataset.thread = threadNumber;
+            if (!threadNumbers.includes(threadNumber)) {
+                threadNumbers.push(threadNumber);
+                const threadFilter = document.getElementById('threadFilter');
+                const option = new Option('Hilo ' + threadNumber, threadNumber);
+                threadFilter.add(option);
+            }
+        }
+
+        logElement.dataset.type = logElement.classList.contains('log-info') ? 'info' :
+            logElement.classList.contains('log-error') ? 'error' :
+                logElement.classList.contains('log-success') ? 'success' :
+                    logElement.classList.contains('log-exc') ? 'exc' : 'unknown';
+
+        return logElement;
+    }
+
+    function logMessage(message) {
+        // Create a unique identifier for each message to prevent duplicates
+        const displayMessage = !showCredentials ? maskCredentials(message) : message;
+
+        if (!uniqueMessages.has(displayMessage)) {
+            uniqueMessages.add(displayMessage);
+            const consoleContainer = document.getElementById('console');
+            const logElement = createLogElement(message);
+
+            consoleContainer.appendChild(logElement);
+
+            if (shouldScrollToBottom) {
+                scrollToBottom(consoleContainer);
+            }
+        }
+    }
+
+    function scrollToBottom(element) {
+        element.scrollTop = element.scrollHeight;
+        shouldScrollToBottom = true; // Reset the flag
+    }
+
+    function filterLogs() {
+        const threadFilterValue = document.getElementById('threadFilter').value;
+        const logTypeFilterValue = document.getElementById('logTypeFilter').value;
+        const logs = document.querySelectorAll('.log');
+        logs.forEach(log => {
+            const matchesThread = threadFilterValue === 'all' || log.dataset.thread === threadFilterValue;
+            const matchesType = logTypeFilterValue === 'all' || log.dataset.type === logTypeFilterValue;
+
+            if (matchesThread && matchesType) {
+                log.style.display = 'block';
+            } else {
+                log.style.display = 'none';
+            }
+        });
+        const consoleContainer = document.getElementById('console');
+        if (shouldScrollToBottom) {
+            scrollToBottom(consoleContainer);
+        }
+    }
+
+    function fetchLog() {
+        fetch('http://127.0.0.1:8111/get_log')
+            .then(response => response.json())
+            .then(logMessages => {
+                logMessages.forEach(message => {
+                    logMessage(message);
+                });
+                filterLogs();
+            })
+            .catch(error => console.error('Error fetching log:', error));
+    }
+
+    document.getElementById('console').addEventListener('scroll', function () {
+        const consoleContainer = document.getElementById('console');
+        const scrollButton = document.getElementById('scroll-bottom-btn');
+
+        if (consoleContainer.scrollTop + consoleContainer.clientHeight < consoleContainer.scrollHeight - 5) {
+            scrollButton.style.display = 'flex';
+            shouldScrollToBottom = false; // Disable auto-scroll when the user scrolls up
+        } else {
+            scrollButton.style.display = 'none';
+            shouldScrollToBottom = true; // Enable auto-scroll when the user is at the bottom
+        }
+    });
+
+    document.getElementById('scroll-bottom-btn').addEventListener('click', function () {
+        const consoleContainer = document.getElementById('console');
+        scrollToBottom(consoleContainer);
+    });
+
+    document.getElementById('kill-btn').addEventListener('click', function () {
+        if (confirm('¿Matar todos los procesos (api, Aoi-Tidal, chromium) y limpiar chromedriver?')) {
+            window.electronAPI.send('kill-processes');
+        }
+    });
+
+    document.getElementById('logout-all-btn').addEventListener('click', function () {
+        if (confirm('¿Cerrar sesión de TODAS las cuentas? Se eliminarán las sesiones guardadas y tendrán que volver a iniciar sesión.')) {
+            window.electronAPI.send('logout-all-accounts');
+        }
+    });
+
+    document.getElementById('optimizer-btn').addEventListener('click', function () {
+        if (confirm('¿Ejecutar optimizador del sistema? Se limpiarán archivos temporales, cachés y se liberará memoria.')) {
+            window.electronAPI.send('run-optimizer');
+        }
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', function () {
+        const consoleContainer = document.getElementById('console');
+        const range = document.createRange();
+        range.selectNode(consoleContainer);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+    });
+
+    document.getElementById('show-credentials').addEventListener('change', function () {
+        showCredentials = this.checked;
+        refreshLogs(); // Refresh the logs to apply the change
+    });
+
+    function refreshLogs() {
+        // Clear the console and fetch logs again
+        const consoleContainer = document.getElementById('console');
+        consoleContainer.innerHTML = '';
+        uniqueMessages.clear(); // Clear unique messages to prevent duplicates
+        fetchLog();
+    }
+
+    window.onload = function () {
+        fetchLog();
+        setInterval(fetchLog, 1000);
+    };
+</script>
+<script src='renderer.js'></script>
+
+</body>
+</html>

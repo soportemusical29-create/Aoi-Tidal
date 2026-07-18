@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Splash Screen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> <!-- Roboto font inclusion -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            font-family: 'Roboto', sans-serif; /* Using Roboto for a flat UI look */
+            color: #ffffff; /* Snow color for text */
+            background-color: #161616; /* Dark background */
+            border-radius: 20px; /* Rounded corners for the whole page */
+            overflow: hidden;
+            position: relative; /* Needed for absolute positioning of child elements */
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%); /* Center #content vertically */
+            border-radius: 20px; /* Rounded corners for the content area */
+            padding: 20px;
+        }
+
+        #backendState {
+            font-size: 16px;
+            color: #dddddd; /* Light gray text for better readability on dark background */
+            font-weight: 500; /* Medium weight for better readability */
+            margin-bottom: 20px; /* Space between text and loader */
+            border-radius: 10px; /* Rounded corners for the status text */
+            padding: 5px 10px;
+            background-color: #1e1e1e; /* Slightly darker background to enhance the rounded effect */
+        }
+
+        .loader {
+            display: block;
+            width: 150px;
+            height: 6px;
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.2); /* Lighter background for the loader track */
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px; /* Rounded corners for the loader */
+        }
+
+        .loader::before {
+            content: "";
+            position: absolute;
+            background: linear-gradient(to right, #ffffff 0%, #aaaaaa 100%); /* Light gradient for loader animation */
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            border-radius: 15px; /* Rounded corners for the loader animation */
+            animation: moving 1.5s ease-in-out infinite;
+        }
+
+        @keyframes moving {
+            50% { width: 100%; }
+            100% { width: 0; right: 0; left: unset; }
+        }
+    </style>
+</head>
+<body>
+<div id="content">
+    <div id="backendState" style="font-size: 22px; font-weight: bold;">Aoi Tidal</div>
+    <div id="backendState">Starting...</div>
+    <div class="loader"></div>
+</div>
+<script src="renderer.js"></script>
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        async function checkBackendState() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/backend', { method: 'POST' });
+                const data = await response.json();
+                const backendStateElement = document.getElementById('backendState');
+                backendStateElement.textContent = `${data.message}`;
+            } catch (error) {
+                console.error('Failed to check backend state:', error);
+                document.getElementById('backendState').textContent = 'Starting...';
+            }
+        }
+        checkBackendState();
+        setInterval(checkBackendState, 5000); // Check every 5 seconds
+    });
+</script>
+</html>

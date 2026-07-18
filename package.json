@@ -1,1 +1,73 @@
-{"name":"aoi-tidal","version":"1.0.0","main":"main.js","description":"Bot for Tidal"}
+{
+  "name": "aoi-tidal",
+  "version": "1.0.0",
+  "description": "Aoi Tidal",
+  "author": "Aoi",
+  "main": "main.js",
+  "license": "ISC",
+  "dependencies": {
+    "apexcharts": "^3.44.0",
+    "axios": "^1.6.2",
+    "chartjs-adapter-moment": "^1.0.1",
+    "express": "^4.18.3",
+    "find-process": "^1.4.7",
+    "jquery": "^3.7.1",
+    "moment": "^2.30.1",
+    "tree-kill": "^1.2.2"
+  },
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-packager . Aoi-Tidal --platform=win32 --arch=x64 --out=dist --overwrite --prune=true --ignore=build --ignore=__pycache__ --ignore=*.pyc --ignore=.git",
+    "dist": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.aoi.tidal",
+    "productName": "Aoi Tidal",
+    "directories": {
+      "output": "installer"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "login.html",
+      "splash.html",
+      "console.html",
+      "styles.css",
+      "api.exe",
+      "node_modules/**/*",
+      "better_driver/**/*",
+      "app-2.40.0/**/*",
+      "url_writer.py",
+      "UtilsService.py",
+      "ConsoleLogger.py"
+    ],
+    "extraResources": [
+      {
+        "from": "api.exe",
+        "to": "api.exe"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": null,
+      "uninstallerIcon": null,
+      "installerHeaderIcon": null,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aoi Tidal",
+      "artifactName": "Aoi-Tidal-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
+  }
+}
